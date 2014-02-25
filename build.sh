@@ -1529,6 +1529,31 @@ function m_handler_smalldist()
 
     m_exit_on_error "xcodebuild cannot build configuration $m_configuration."
 
+
+	####################################################################################################################################
+	t_bin=loopback
+	t_path="filesystems/filesystems-c/$t_bin"
+	t_dir="$ms_osxfuse_root/usr/local/bin"
+
+	cd "$ms_project_dir/../$t_path"
+	m_exit_on_error "cannot access loopback directory! : $ms_project_dir/../$t_path"
+	
+	make clean
+	m_exit_on_error "Failed to 'make clean' to clean the loopback-directory from previous builds"
+	
+	echo "making loopback-fs"
+	make
+	m_exit_on_error "Failed to build loopback filesystem in directory $PWD"
+	
+	/bin/mkdir -p $t_dir
+	m_exit_on_error "Failed to create the temp-install-dir $t_dir"
+	
+	/bin/cp -pRX loopback "$t_dir/"
+	m_exit_on_error "Failed to copy loopback binary into target $t_dir"
+	
+	####################################################################################################################################
+	
+
     # Go for it
 
     local ms_project_dir="$kernel_dir"
@@ -1540,7 +1565,7 @@ function m_handler_smalldist()
     fi
 
     ms_osxfuse_system_dir=""
-
+	
     mkdir -p "$ms_osxfuse_build"
     m_exit_on_error "cannot make new build directory '$ms_osxfuse_build'."
 

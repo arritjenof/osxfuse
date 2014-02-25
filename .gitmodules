@@ -13,3 +13,6 @@
 [submodule "prefpane"]
 	path = prefpane
 	url = ../prefpane.git
+[submodule "filesystems"]
+	path = filesystems
+	url = git@github.com:arritjenof/filesystems.git
