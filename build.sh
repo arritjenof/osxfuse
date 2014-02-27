@@ -135,7 +135,7 @@ readonly M_KEXT_SYMBOLS="osxfusefs-symbols"
 readonly M_LOGPREFIX="OSXFUSEBuildTool"
 readonly M_OSXFUSE_PRODUCT_ID="com.github.osxfuse.OSXFUSE"
 
-readonly M_MACFUSE_MODE=1
+readonly M_MACFUSE_MODE=0
 
 # Core
 readonly M_PKGID_CORE="com.github.osxfuse.pkg.Core"
@@ -719,43 +719,44 @@ function m_handler_dist()
         false
         m_exit_on_error "cannot find private key '$m_plistsigner_key'."
     fi
-
-    # Autoinstaller
-    #
-
-    local md_ai_builddir="$m_srcroot/prefpane/autoinstaller/build"
-
-    if [ "$m_shortcircuit" != "1" ]
-    then
-        rm -rf "$md_ai_builddir"
-        # ignore any errors
-    fi
-
-    m_log "building the OSXFUSE autoinstaller"
-
-    pushd "$m_srcroot/prefpane/autoinstaller" >/dev/null 2>/dev/null
-    m_exit_on_error "cannot access the autoinstaller source."
-    xcodebuild -configuration "$m_configuration" -target "Build All" GCC_VERSION="$m_compiler" ARCHS="$m_archs" VALID_ARCHS="ppc i386 x86_64" SDKROOT="$m_usdk_dir" MACOSX_DEPLOYMENT_TARGET="$m_platform" >$m_stdout 2>$m_stderr
-    m_exit_on_error "xcodebuild cannot build configuration $m_configuration for subtarget autoinstaller."
-    popd >/dev/null 2>/dev/null
-
-    local md_ai="$md_ai_builddir/$m_configuration/autoinstall-osxfuse-core"
-    if [ ! -x "$md_ai" ]
-    then
-        false
-        m_exit_on_error "cannot find autoinstaller '$md_ai'."
-    fi
-    local md_plistsigner="$md_ai_builddir/$m_configuration/plist_signer"
-    if [ ! -x "$md_plistsigner" ]
-    then
-        false
-        m_exit_on_error "cannot find plist signer '$md_plistsigner'."
-    fi
+	
+	### DO NOT INCLUDE THE AUTOINSTALLER
+    # # Autoinstaller
+    # #
+    # 
+    # local md_ai_builddir="$m_srcroot/prefpane/autoinstaller/build"
+    # 
+    # if [ "$m_shortcircuit" != "1" ]
+    # then
+    #     rm -rf "$md_ai_builddir"
+    #     # ignore any errors
+    # fi
+    # 
+    # m_log "building the OSXFUSE autoinstaller"
+    # 
+    # pushd "$m_srcroot/prefpane/autoinstaller" >/dev/null 2>/dev/null
+    # m_exit_on_error "cannot access the autoinstaller source."
+    # xcodebuild -configuration "$m_configuration" -target "Build All" GCC_VERSION="$m_compiler" ARCHS="$m_archs" VALID_ARCHS="ppc i386 x86_64" SDKROOT="$m_usdk_dir" MACOSX_DEPLOYMENT_TARGET="$m_platform" >$m_stdout 2>$m_stderr
+    # m_exit_on_error "xcodebuild cannot build configuration $m_configuration for subtarget autoinstaller."
+    # popd >/dev/null 2>/dev/null
+	
+    # local md_ai="$md_ai_builddir/$m_configuration/autoinstall-osxfuse-core"
+    # if [ ! -x "$md_ai" ]
+    # then
+    #     false
+    #     m_exit_on_error "cannot find autoinstaller '$md_ai'."
+    # fi
+    # local md_plistsigner="$md_ai_builddir/$m_configuration/plist_signer"
+    # if [ ! -x "$md_plistsigner" ]
+    # then
+    #     false
+    #     m_exit_on_error "cannot find plist signer '$md_plistsigner'."
+    # fi
 
     # Build the preference pane
     #
     local md_pp_builddir="$m_srcroot/prefpane/build"
-
+	
     if [ "$m_shortcircuit" != "1" ]
     then
         rm -rf "$md_pp_builddir"
@@ -777,7 +778,7 @@ function m_handler_dist()
         m_exit_on_error "cannot find preference pane."
     fi
 
-    /bin/cp "$md_ai" "$md_pp/Contents/MacOS"
+    #/bin/cp "$md_ai" "$md_pp/Contents/MacOS"
     m_exit_on_error "cannot copy the autoinstaller to the prefpane bundle."
 
     # Build the container
@@ -796,7 +797,7 @@ function m_handler_dist()
         sudo -p "$m_suprompt" rm -rf "$md_osxfuse_out"
         # ignore any errors
     fi
-
+	
     m_log "initiating distribution build"
 
     local md_platforms=""
@@ -1465,11 +1466,15 @@ function m_handler_smalldist()
         m_exit_on_error "cannot access directory '$kernel_dir'."
     fi
 
+	echo "Source root $m_srcroot"
     if [ "$m_shortcircuit" != "1" ]
     then
         rm -rf "$lib_dir_mf/build/"
         rm -rf "$kernel_dir/build/"
         rm -rf "$m_srcroot/framework/build/"
+		pushd "$m_srcroot/filesystems/filesystems-c/loopback"
+			make clean
+		popd
     fi
 
     local ms_os_version="$m_platform"
@@ -1534,9 +1539,9 @@ function m_handler_smalldist()
 	t_bin=loopback
 	t_path="filesystems/filesystems-c/$t_bin"
 	t_dir="$ms_osxfuse_root/usr/local/bin"
-
-	cd "$ms_project_dir/../$t_path"
-	m_exit_on_error "cannot access loopback directory! : $ms_project_dir/../$t_path"
+	echo "LOOOPBBAAAACCCKKK  $m_srcroot/$t_path !!!!!!!!!!"
+	pushd "$m_srcroot/$t_path"
+	m_exit_on_error "cannot access loopback directory! : $m_srcroot/$t_path"
 	
 	make clean
 	m_exit_on_error "Failed to 'make clean' to clean the loopback-directory from previous builds"
@@ -1550,7 +1555,7 @@ function m_handler_smalldist()
 	
 	/bin/cp -pRX loopback "$t_dir/"
 	m_exit_on_error "Failed to copy loopback binary into target $t_dir"
-	
+	popd
 	####################################################################################################################################
 	
 
